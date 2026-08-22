@@ -1,12 +1,15 @@
 package com.gamerprofile.api.controller;
 
 import com.gamerprofile.integration.steam.SteamIntegrationService;
+import com.gamerprofile.integration.steam.SteamGamesResponse;
 import com.gamerprofile.integration.steam.SteamProfileResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/integrations/steam")
@@ -27,5 +30,10 @@ public class SteamProfileController {
 		}
 
 		return response.response().players().getFirst();
+	}
+
+	@GetMapping("/games")
+	public List<SteamGamesResponse.SteamGame> games() {
+		return steamIntegrationService.getOwnedGames();
 	}
 }

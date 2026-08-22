@@ -1,5 +1,6 @@
 package com.gamerprofile.api.controller;
 
+import com.gamerprofile.api.dto.SteamGameDto;
 import com.gamerprofile.integration.steam.SteamIntegrationService;
 import com.gamerprofile.integration.steam.SteamGamesResponse;
 import com.gamerprofile.integration.steam.SteamProfileResponse;
@@ -33,7 +34,9 @@ public class SteamProfileController {
 	}
 
 	@GetMapping("/games")
-	public List<SteamGamesResponse.SteamGame> games() {
-		return steamIntegrationService.getOwnedGames();
+	public List<SteamGameDto> games() {
+		return steamIntegrationService.getOwnedGames().stream()
+				.map(SteamGameDto::from)
+				.toList();
 	}
 }

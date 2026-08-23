@@ -55,6 +55,16 @@ public class Achievement {
 		this.name = name;
 	}
 
+	public void updateDetails(String name, String description, boolean achieved,
+			Long unlockTime, String iconUrl, String iconGrayUrl) {
+		this.name = name;
+		this.description = description;
+		this.achieved = achieved;
+		this.unlockTime = unlockTime;
+		this.iconUrl = iconUrl;
+		this.iconGrayUrl = iconGrayUrl;
+	}
+
 	public Long getId() { return id; }
 	public Game getGame() { return game; }
 	public String getExternalId() { return externalId; }

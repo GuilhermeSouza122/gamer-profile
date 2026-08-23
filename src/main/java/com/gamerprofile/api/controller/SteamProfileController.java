@@ -10,10 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/integrations/steam")
@@ -46,5 +48,15 @@ public class SteamProfileController {
 	@GetMapping("/games/{appId}/achievements")
 	public List<SteamAchievementDto> achievements(@PathVariable Integer appId) {
 		return steamIntegrationService.getCompleteAchievements(appId);
+	}
+
+	@PostMapping("/games/{appId}/achievements/sync")
+	public Map<String, Object> syncAchievements(@PathVariable Integer appId) {
+		try {
+			int count = steamIntegrationService.syncAchievements(appId);
+			return Map.of("status", "SYNCED", "appId", appId, "achievements", count);
+		} catch (IllegalArgumentException exception) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+		}
 	}
 }

@@ -21,3 +21,21 @@ CREATE TABLE IF NOT EXISTS achievements (
     icon_gray_url VARCHAR(500),
     CONSTRAINT uk_achievements_game_external_id UNIQUE (game_id, external_id)
 );
+
+CREATE TABLE IF NOT EXISTS app_users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(120) NOT NULL UNIQUE,
+    display_name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS platform_connections (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES app_users(id),
+    platform VARCHAR(40) NOT NULL,
+    external_account_id VARCHAR(150) NOT NULL,
+    access_token VARCHAR(2000),
+    refresh_token VARCHAR(2000),
+    connected_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT uk_platform_connections_user_platform UNIQUE (user_id, platform)
+);

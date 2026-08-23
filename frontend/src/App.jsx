@@ -5,6 +5,7 @@ import './sync.css'
 const API = 'http://localhost:8080/api/v1'
 
 function App() {
+  const [showLogin, setShowLogin] = useState(() => !new URLSearchParams(window.location.search).has('connected'))
   const [games, setGames] = useState([])
   const [selectedGame, setSelectedGame] = useState(null)
   const [achievements, setAchievements] = useState([])
@@ -63,6 +64,8 @@ function App() {
   const unlocked = achievements.filter((achievement) => achievement.achieved).length
   const progress = achievements.length ? Math.round((unlocked / achievements.length) * 100) : 0
 
+  if (showLogin) return <LoginScreen onContinue={() => setShowLogin(false)} />
+
   return <main className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark">GP</span><span>GAMER PROFILE</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
     <section className="hero"><div><p className="eyebrow">UNIFIED GAMING IDENTITY / 001</p><h1>Your library.<br /><em>Your progress.</em></h1><p className="hero-copy">Uma visão única de tudo que você joga, conquista e desbloqueia.</p></div><div className="hero-stat"><strong>{summary?.totalGames || games.length || '—'}</strong><span>JOGOS<br />SINCRONIZADOS</span></div></section>
@@ -73,6 +76,25 @@ function App() {
       <aside className="library-panel"><div className="panel-heading"><div><p className="eyebrow">COLLECTION</p><h2>Biblioteca</h2></div><span className="count">{games.length}</span></div><label className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar jogo..." /></label><div className="game-list">{loading && <p className="muted">Carregando biblioteca...</p>}{!loading && filteredGames.map((game) => <button className={`game-row ${selectedGame?.id === game.id ? 'active' : ''}`} key={game.id} onClick={() => selectGame(game)}><span className="game-icon">{game.name.slice(0, 1)}</span><span className="game-name">{game.name}<small>{game.playtimeMinutes || 0} min jogados</small></span><span className="arrow">↗</span></button>)}</div></aside>
       <section className="detail-panel">{selectedGame ? <><div className="detail-heading"><div><p className="eyebrow">SELECTED GAME / {selectedGame.externalId}</p><h2>{selectedGame.name}</h2></div><span className="platform-badge">STEAM</span></div><div className="metrics"><div><strong>{selectedGame.playtimeMinutes || 0}</strong><span>MINUTOS JOGADOS</span></div><div><strong>{achievements.length || '—'}</strong><span>CONQUISTAS</span></div><div><strong>{progress}%</strong><span>CONCLUSÃO</span></div></div><div className="achievement-header"><div><p className="eyebrow">ACHIEVEMENTS</p><h3>Conquistas</h3></div><span>{unlocked} / {achievements.length}</span></div>{loadingAchievements ? <p className="muted">Carregando conquistas...</p> : <div className="achievement-grid">{achievements.map((achievement) => <article className={`achievement ${achievement.achieved ? 'unlocked' : ''}`} key={achievement.id}><div className="achievement-icon">{achievement.iconUrl ? <img src={achievement.iconUrl} alt="" /> : '✦'}</div><div><h4>{achievement.name}</h4><p>{achievement.description || 'Conquista da sua jornada.'}</p><span>{achievement.achieved ? 'DESBLOQUEADA' : 'BLOQUEADA'}</span></div></article>)}</div>}</> : <div className="empty"><span>✦</span><h2>Biblioteca vazia</h2><p>Sincronize sua conta Steam para começar.</p></div>}</section>
     </section><footer><span>GAMER PROFILE / PRIVATE BUILD</span><span>JAVA 21 · SPRING BOOT · REACT</span></footer>
+  </main>
+}
+
+function LoginScreen({ onContinue }) {
+  return <main className="login-shell">
+    <div className="login-grid" />
+    <header className="login-topbar"><div className="brand"><span className="brand-mark">GP</span><span>GAMER PROFILE</span></div><span className="login-version">PRIVATE BUILD / 001</span></header>
+    <section className="login-hero">
+      <p className="eyebrow">YOUR GAMING IDENTITY, UNIFIED</p>
+      <h1>Todos os seus<br /><em>jogos. Em um só lugar.</em></h1>
+      <p className="login-copy">Conecte suas plataformas, acompanhe suas conquistas e transforme cada partida em progresso.</p>
+      <div className="login-actions">
+        <a className="steam-login" href="http://localhost:8080/auth/steam"><span>◈</span> ENTRAR COM STEAM <b>↗</b></a>
+        <button className="continue-button" onClick={onContinue}>CONTINUAR SEM CONECTAR</button>
+      </div>
+      <p className="login-note">Você será redirecionado para a Steam para autorizar o acesso. Nós nunca vemos sua senha.</p>
+    </section>
+    <section className="platform-preview"><span>PLATAFORMAS</span><strong>STEAM</strong><i>RETROACHIEVEMENTS</i><i>XBOX</i><i>PLAYSTATION</i></section>
+    <footer><span>GAMER PROFILE / PRIVATE BUILD</span><span>JAVA 21 · SPRING BOOT · REACT</span></footer>
   </main>
 }
 

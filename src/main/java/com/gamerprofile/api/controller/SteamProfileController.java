@@ -1,6 +1,7 @@
 package com.gamerprofile.api.controller;
 
 import com.gamerprofile.api.dto.SteamGameDto;
+import com.gamerprofile.api.dto.SteamAchievementDto;
 import com.gamerprofile.integration.steam.SteamIntegrationService;
 import com.gamerprofile.integration.steam.SteamGamesResponse;
 import com.gamerprofile.integration.steam.SteamAchievementsResponse;
@@ -43,7 +44,7 @@ public class SteamProfileController {
 	}
 
 	@GetMapping("/games/{appId}/achievements")
-	public List<SteamAchievementsResponse.SteamAchievement> achievements(@PathVariable Integer appId) {
-		return steamIntegrationService.getPlayerAchievements(appId);
+	public List<SteamAchievementDto> achievements(@PathVariable Integer appId) {
+		return steamIntegrationService.getCompleteAchievements(appId);
 	}
 }

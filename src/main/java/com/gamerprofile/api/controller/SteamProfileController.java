@@ -5,6 +5,7 @@ import com.gamerprofile.api.dto.SteamAchievementDto;
 import com.gamerprofile.integration.steam.SteamIntegrationService;
 import com.gamerprofile.integration.steam.SteamGamesResponse;
 import com.gamerprofile.integration.steam.SteamAchievementsResponse;
+import com.gamerprofile.integration.steam.SteamBulkSyncResult;
 import com.gamerprofile.integration.steam.SteamProfileResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +50,11 @@ public class SteamProfileController {
 	public Map<String, Object> syncGames() {
 		int count = steamIntegrationService.syncGames();
 		return Map.of("status", "SYNCED", "games", count);
+	}
+
+	@RequestMapping(value = "/games/achievements/sync-all", method = RequestMethod.POST)
+	public SteamBulkSyncResult syncAllAchievements() {
+		return steamIntegrationService.syncAllAchievements();
 	}
 
 	@GetMapping("/games/{appId}/achievements")

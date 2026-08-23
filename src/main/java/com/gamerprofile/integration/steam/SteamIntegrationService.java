@@ -113,4 +113,26 @@ public class SteamIntegrationService {
 
 		return achievements.size();
 	}
+
+	public SteamBulkSyncResult syncAllAchievements() {
+		int gamesProcessed = 0;
+		int achievementsSynced = 0;
+		List<String> failures = new java.util.ArrayList<>();
+
+		for (Game game : gameRepository.findAll()) {
+			if (!"STEAM".equals(game.getPlatform())) {
+				continue;
+			}
+
+			try {
+				int appId = Integer.parseInt(game.getExternalId());
+				achievementsSynced += syncAchievements(appId);
+				gamesProcessed++;
+			} catch (RuntimeException exception) {
+				failures.add(game.getExternalId() + ": " + exception.getClass().getSimpleName());
+			}
+		}
+
+		return new SteamBulkSyncResult(gamesProcessed, achievementsSynced, failures);
+	}
 }

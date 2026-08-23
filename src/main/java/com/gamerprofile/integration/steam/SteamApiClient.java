@@ -37,6 +37,18 @@ public class SteamApiClient {
 				.body(SteamProfileResponse.class);
 	}
 
+	public SteamAchievementsResponse getPlayerAchievements(Integer appId) {
+		return restClient.get()
+				.uri(uriBuilder -> uriBuilder
+						.path("/ISteamUserStats/GetPlayerAchievements/v0001/")
+						.queryParam("key", apiKey)
+						.queryParam("steamid", steamId)
+						.queryParam("appid", appId)
+						.build())
+				.retrieve()
+				.body(SteamAchievementsResponse.class);
+	}
+
 	public SteamGamesResponse getOwnedGames() {
 		Map<String, Object> payload = restClient.get()
 				.uri(uriBuilder -> uriBuilder

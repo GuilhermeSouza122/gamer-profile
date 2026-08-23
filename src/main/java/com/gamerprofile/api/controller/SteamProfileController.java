@@ -3,10 +3,12 @@ package com.gamerprofile.api.controller;
 import com.gamerprofile.api.dto.SteamGameDto;
 import com.gamerprofile.integration.steam.SteamIntegrationService;
 import com.gamerprofile.integration.steam.SteamGamesResponse;
+import com.gamerprofile.integration.steam.SteamAchievementsResponse;
 import com.gamerprofile.integration.steam.SteamProfileResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,5 +40,10 @@ public class SteamProfileController {
 		return steamIntegrationService.getOwnedGames().stream()
 				.map(SteamGameDto::from)
 				.toList();
+	}
+
+	@GetMapping("/games/{appId}/achievements")
+	public List<SteamAchievementsResponse.SteamAchievement> achievements(@PathVariable Integer appId) {
+		return steamIntegrationService.getPlayerAchievements(appId);
 	}
 }

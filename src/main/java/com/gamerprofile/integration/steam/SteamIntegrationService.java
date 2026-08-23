@@ -26,4 +26,14 @@ public class SteamIntegrationService {
 
 		return response.response().games();
 	}
+
+	public List<SteamAchievementsResponse.SteamAchievement> getPlayerAchievements(Integer appId) {
+		SteamAchievementsResponse response = steamApiClient.getPlayerAchievements(appId);
+
+		if (response == null || response.playerstats() == null || response.playerstats().achievements() == null) {
+			return List.of();
+		}
+
+		return response.playerstats().achievements();
+	}
 }

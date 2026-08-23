@@ -15,9 +15,12 @@ import java.util.Map;
 public class SteamAuthController {
 
 	private final SteamAuthenticationService authenticationService;
+	private final String frontendUrl;
 
-	public SteamAuthController(SteamAuthenticationService authenticationService) {
+	public SteamAuthController(SteamAuthenticationService authenticationService,
+			@org.springframework.beans.factory.annotation.Value("${steam.auth.frontend-url}") String frontendUrl) {
 		this.authenticationService = authenticationService;
+		this.frontendUrl = frontendUrl;
 	}
 
 	@GetMapping("/auth/steam")
@@ -26,9 +29,10 @@ public class SteamAuthController {
 	}
 
 	@GetMapping("/auth/steam/callback")
-	public Map<String, Object> callback(@RequestParam MultiValueMap<String, String> parameters) {
+	public RedirectView callback(@RequestParam MultiValueMap<String, String> parameters) {
 		try {
-			return authenticationService.authenticate(parameters);
+			authenticationService.authenticate(parameters);
+			return new RedirectView(frontendUrl + "?connected=steam");
 		} catch (IllegalArgumentException exception) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
 		}

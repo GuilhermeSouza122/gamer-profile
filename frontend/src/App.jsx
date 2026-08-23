@@ -12,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [loadingAchievements, setLoadingAchievements] = useState(false)
   const [error, setError] = useState('')
+  const [summary, setSummary] = useState(null)
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
 
@@ -22,6 +23,10 @@ function App() {
     }).then((data) => { setGames(data); if (data.length) selectGame(data[0]) })
       .catch((reason) => setError(reason.message)).finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    fetch(`${API}/dashboard/summary`).then((response) => response.json()).then(setSummary).catch(() => {})
+  }, [games])
 
   function selectGame(game) {
     setSelectedGame(game); setLoadingAchievements(true)
@@ -60,7 +65,8 @@ function App() {
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark">GP</span><span>GAMER PROFILE</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
-    <section className="hero"><div><p className="eyebrow">UNIFIED GAMING IDENTITY / 001</p><h1>Your library.<br /><em>Your progress.</em></h1><p className="hero-copy">Uma visão única de tudo que você joga, conquista e desbloqueia.</p></div><div className="hero-stat"><strong>{games.length || '—'}</strong><span>JOGOS<br />SINCRONIZADOS</span></div></section>
+    <section className="hero"><div><p className="eyebrow">UNIFIED GAMING IDENTITY / 001</p><h1>Your library.<br /><em>Your progress.</em></h1><p className="hero-copy">Uma visão única de tudo que você joga, conquista e desbloqueia.</p></div><div className="hero-stat"><strong>{summary?.totalGames || games.length || '—'}</strong><span>JOGOS<br />SINCRONIZADOS</span></div></section>
+    <section className="summary-grid"><div><strong>{summary?.totalGames ?? '—'}</strong><span>JOGOS TOTAIS</span></div><div><strong>{summary ? Math.round(summary.totalPlaytimeMinutes / 60) : '—'}</strong><span>HORAS JOGADAS</span></div><div><strong>{summary?.unlockedAchievements ?? '—'}</strong><span>CONQUISTAS</span></div><div><strong>{summary ? `${summary.completionPercentage}%` : '—'}</strong><span>CONCLUSÃO GERAL</span></div></section>
     {error && <div className="notice">{error} <span>Verifique se o backend está rodando em localhost:8080.</span></div>}
     {syncMessage && <div className="sync-message">{syncMessage}</div>}
     <section className="content-grid">

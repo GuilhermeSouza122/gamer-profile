@@ -43,6 +43,13 @@ public class Game {
 		this.name = name;
 	}
 
+	public void updateDetails(String name, Integer playtimeMinutes, Long lastPlayedEpochSeconds, String imageUrl) {
+		this.name = name;
+		this.playtimeMinutes = playtimeMinutes;
+		this.lastPlayedEpochSeconds = lastPlayedEpochSeconds;
+		this.imageUrl = imageUrl;
+	}
+
 	public Long getId() { return id; }
 	public String getPlatform() { return platform; }
 	public String getExternalId() { return externalId; }

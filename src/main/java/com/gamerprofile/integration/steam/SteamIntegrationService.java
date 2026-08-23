@@ -78,6 +78,24 @@ public class SteamIntegrationService {
 	}
 
 	@Transactional
+	public int syncGames() {
+		List<SteamGamesResponse.SteamGame> steamGames = getOwnedGames();
+		for (SteamGamesResponse.SteamGame steamGame : steamGames) {
+			String externalId = String.valueOf(steamGame.getAppid());
+			Game game = gameRepository.findByPlatformAndExternalId("STEAM", externalId)
+					.orElseGet(() -> new Game("STEAM", externalId,
+							steamGame.getName() == null ? externalId : steamGame.getName()));
+			String imageUrl = steamGame.getImgIconUrl() == null ? null
+					: "https://media.steampowered.com/steamcommunity/public/images/apps/"
+							+ externalId + "/" + steamGame.getImgIconUrl() + ".jpg";
+			game.updateDetails(steamGame.getName() == null ? externalId : steamGame.getName(),
+					steamGame.getPlaytimeForever(), steamGame.getRtimeLastPlayed(), imageUrl);
+			gameRepository.save(game);
+		}
+		return steamGames.size();
+	}
+
+	@Transactional
 	public int syncAchievements(Integer appId) {
 		Game game = gameRepository.findByPlatformAndExternalId("STEAM", String.valueOf(appId))
 				.orElseThrow(() -> new IllegalArgumentException("Steam game is not synchronized yet: " + appId));

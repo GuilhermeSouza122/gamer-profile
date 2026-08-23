@@ -45,6 +45,12 @@ public class SteamProfileController {
 				.toList();
 	}
 
+	@RequestMapping(value = "/games/sync", method = RequestMethod.POST)
+	public Map<String, Object> syncGames() {
+		int count = steamIntegrationService.syncGames();
+		return Map.of("status", "SYNCED", "games", count);
+	}
+
 	@GetMapping("/games/{appId}/achievements")
 	public List<SteamAchievementDto> achievements(@PathVariable Integer appId) {
 		return steamIntegrationService.getCompleteAchievements(appId);

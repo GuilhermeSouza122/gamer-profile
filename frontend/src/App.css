@@ -4,3 +4,4 @@
 .cover-wrap{height:auto;aspect-ratio:2/3}.cover-wrap img{object-fit:cover;image-rendering:auto}
 .landscape-cover img{object-fit:cover;object-position:center}.landscape-cover{background:#111}
 .steam-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #a8ff3e;box-shadow:0 0 12px #a8ff3e44}
+.profile-highlights{display:flex;gap:42px;margin-top:35px}.profile-highlights div{display:grid;gap:4px}.profile-highlights strong{font-size:32px;line-height:1;color:#fff}.profile-highlights span{color:#777582;font:10px 'DM Mono';letter-spacing:1px}@media(max-width:500px){.profile-highlights{gap:25px}.profile-highlights strong{font-size:26px}}

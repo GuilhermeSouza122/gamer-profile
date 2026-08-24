@@ -39,6 +39,10 @@ public class SiteAchievementService {
 
 	@Transactional
 	public void evaluate(User user) {
+		user = userRepository.findById(user.getId()).orElseThrow();
+		int alreadyEarnedXp = siteAchievementRepository.findAllByUserId(user.getId()).stream()
+				.mapToInt(achievement -> xpFor(achievement.getAchievementCode())).sum();
+		user.ensureExperience(alreadyEarnedXp);
 		List<Game> games = gameRepository.findAllByUserId(user.getId());
 		long totalAchievements = 0;
 		long unlockedAchievements = 0;
@@ -76,5 +80,20 @@ public class SiteAchievementService {
 			siteAchievementRepository.save(new UserSiteAchievement(user, code));
 			user.addExperience(xp);
 		}
+	}
+
+	private int xpFor(String code) {
+		return switch (code) {
+			case "FIRST_CONNECTION" -> 50;
+			case "FIRST_SYNC" -> 100;
+			case "COLLECTOR", "TROPHY_HUNTER" -> 250;
+			case "BIG_LIBRARY", "MARATHONER" -> 500;
+			case "COMPLETE_GAME", "MULTI_PLATFORM" -> 300;
+			case "EXPLORER" -> 750;
+			case "VETERAN_HUNTER", "PERFECTIONIST" -> 1000;
+			case "VETERAN" -> 1500;
+			case "COMPLETE_PROFILE" -> 100;
+			default -> 0;
+		};
 	}
 }

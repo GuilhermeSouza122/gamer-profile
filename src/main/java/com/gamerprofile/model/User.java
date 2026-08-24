@@ -68,4 +68,11 @@ public class User {
 		this.xpPoints += points;
 		this.level = 1 + (this.xpPoints / 1000);
 	}
+
+	public void ensureExperience(int points) {
+		if (this.xpPoints < points) {
+			this.xpPoints = points;
+			this.level = 1 + (this.xpPoints / 1000);
+		}
+	}
 }

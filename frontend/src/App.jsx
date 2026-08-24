@@ -17,9 +17,16 @@ const SITE_ACHIEVEMENTS = [
   ['Maratonista', 'Dedique tempo à sua coleção.', 'Acumulou 100 horas jogadas', '◷'],
   ['Veterano', 'Uma longa história de partidas.', 'Acumulou 500 horas jogadas', '◒'],
   ['Em busca da perfeição', 'Complete vários jogos por inteiro.', 'Completou 5 jogos em 100%', '✧'],
-  ['Perfil completo', 'Personalize sua identidade gamer.', 'Avatar e plataforma conectados', '☻']
+  ['Perfil completo', 'Personalize sua identidade gamer.', 'Avatar e plataforma conectados', '☻'],
+  ['Bibliotecário', 'Sua coleção já parece uma biblioteca.', 'Possui 100 jogos', '▤'],
+  ['Império gamer', 'Uma coleção de proporções épicas.', 'Possui 200 jogos', '♜'],
+  ['Mestre caçador', 'Você já domina a busca por troféus.', 'Desbloqueou 250 conquistas', '⚔'],
+  ['Lenda dos troféus', 'Uma marca alcançada por poucos.', 'Desbloqueou 500 conquistas', '♕'],
+  ['Gamer dedicado', 'Milhares de minutos investidos na jornada.', 'Acumulou 1.000 horas jogadas', '◉'],
+  ['Completionist', 'Nada fica pela metade.', 'Completou 10 jogos em 100%', '◆'],
+  ['Conector universal', 'Sua identidade gamer está em todo lugar.', 'Conectou 4 plataformas', '◎']
 ]
-const SITE_CODES = Object.fromEntries(['FIRST_CONNECTION', 'FIRST_SYNC', 'COLLECTOR', 'BIG_LIBRARY', 'TROPHY_HUNTER', 'VETERAN_HUNTER', 'COMPLETE_GAME', 'MULTI_PLATFORM', 'EXPLORER', 'MARATHONER', 'VETERAN', 'PERFECTIONIST', 'COMPLETE_PROFILE'].map((code, index) => [SITE_ACHIEVEMENTS[index][0], code]))
+const SITE_CODES = Object.fromEntries(['FIRST_CONNECTION', 'FIRST_SYNC', 'COLLECTOR', 'BIG_LIBRARY', 'TROPHY_HUNTER', 'VETERAN_HUNTER', 'COMPLETE_GAME', 'MULTI_PLATFORM', 'EXPLORER', 'MARATHONER', 'VETERAN', 'PERFECTIONIST', 'COMPLETE_PROFILE', 'LIBRARIAN', 'GAMING_EMPIRE', 'MASTER_HUNTER', 'TROPHY_LEGEND', 'DEDICATED_GAMER', 'COMPLETIONIST', 'UNIVERSAL_CONNECTOR'].map((code, index) => [SITE_ACHIEVEMENTS[index][0], code]))
 
 function coverUrl(game) {
   if (game.externalId === '3405690') {

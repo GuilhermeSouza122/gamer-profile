@@ -19,7 +19,8 @@ public class SiteAchievementService {
 	public static final List<String> CODES = List.of(
 			"FIRST_CONNECTION", "FIRST_SYNC", "COLLECTOR", "BIG_LIBRARY", "TROPHY_HUNTER",
 			"VETERAN_HUNTER", "COMPLETE_GAME", "MULTI_PLATFORM", "EXPLORER", "MARATHONER",
-			"VETERAN", "PERFECTIONIST", "COMPLETE_PROFILE");
+			"VETERAN", "PERFECTIONIST", "COMPLETE_PROFILE", "LIBRARIAN", "GAMING_EMPIRE",
+			"MASTER_HUNTER", "TROPHY_LEGEND", "DEDICATED_GAMER", "COMPLETIONIST", "UNIVERSAL_CONNECTOR");
 
 	private final GameRepository gameRepository;
 	private final AchievementRepository achievementRepository;
@@ -68,6 +69,13 @@ public class SiteAchievementService {
 		if (totalPlaytime >= 30000) unlock(user, "VETERAN", 1500);
 		if (completedGames >= 5) unlock(user, "PERFECTIONIST", 1000);
 		if (user.getAvatarUrl() != null && platforms >= 1) unlock(user, "COMPLETE_PROFILE", 100);
+		if (games.size() >= 100) unlock(user, "LIBRARIAN", 1000);
+		if (games.size() >= 200) unlock(user, "GAMING_EMPIRE", 2000);
+		if (unlockedAchievements >= 250) unlock(user, "MASTER_HUNTER", 1500);
+		if (unlockedAchievements >= 500) unlock(user, "TROPHY_LEGEND", 2500);
+		if (totalPlaytime >= 60000) unlock(user, "DEDICATED_GAMER", 2500);
+		if (completedGames >= 10) unlock(user, "COMPLETIONIST", 2500);
+		if (platforms >= 4) unlock(user, "UNIVERSAL_CONNECTOR", 2000);
 		userRepository.save(user);
 	}
 
@@ -93,6 +101,12 @@ public class SiteAchievementService {
 			case "VETERAN_HUNTER", "PERFECTIONIST" -> 1000;
 			case "VETERAN" -> 1500;
 			case "COMPLETE_PROFILE" -> 100;
+			case "LIBRARIAN" -> 1000;
+			case "GAMING_EMPIRE" -> 2000;
+			case "MASTER_HUNTER" -> 1500;
+			case "TROPHY_LEGEND" -> 2500;
+			case "DEDICATED_GAMER", "COMPLETIONIST" -> 2500;
+			case "UNIVERSAL_CONNECTOR" -> 2000;
 			default -> 0;
 		};
 	}

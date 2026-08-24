@@ -31,8 +31,8 @@ public class SteamAuthController {
 	@GetMapping("/auth/steam/callback")
 	public RedirectView callback(@RequestParam MultiValueMap<String, String> parameters) {
 		try {
-			authenticationService.authenticate(parameters);
-			return new RedirectView(frontendUrl + "?connected=steam");
+			Map<String, Object> result = authenticationService.authenticate(parameters);
+			return new RedirectView(frontendUrl + "?connected=steam&userId=" + result.get("userId"));
 		} catch (IllegalArgumentException exception) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
 		}

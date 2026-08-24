@@ -23,6 +23,9 @@ public class User {
 	@Column(name = "display_name", nullable = false, length = 120)
 	private String displayName;
 
+	@Column(name = "avatar_key", nullable = false, length = 40)
+	private String avatarKey;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -32,11 +35,14 @@ public class User {
 	public User(String username, String displayName) {
 		this.username = username;
 		this.displayName = displayName;
+		this.avatarKey = "cyberpunk";
 		this.createdAt = Instant.now();
 	}
 
 	public Long getId() { return id; }
 	public String getUsername() { return username; }
 	public String getDisplayName() { return displayName; }
+	public String getAvatarKey() { return avatarKey; }
 	public Instant getCreatedAt() { return createdAt; }
+	public void changeAvatar(String avatarKey) { this.avatarKey = avatarKey; }
 }

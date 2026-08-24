@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS app_users (
     created_at TIMESTAMPTZ NOT NULL
 );
 
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS avatar_key VARCHAR(40) NOT NULL DEFAULT 'cyberpunk';
+
 CREATE TABLE IF NOT EXISTS platform_connections (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES app_users(id),

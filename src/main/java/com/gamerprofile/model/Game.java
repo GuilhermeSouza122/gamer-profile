@@ -5,16 +5,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "games", uniqueConstraints = @UniqueConstraint(name = "uk_games_platform_external_id", columnNames = {"platform", "external_id"}))
+@Table(name = "games", uniqueConstraints = @UniqueConstraint(name = "uk_games_user_platform_external_id", columnNames = {"user_id", "platform", "external_id"}))
 public class Game {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
 	@Column(nullable = false, length = 40)
 	private String platform;
@@ -37,7 +44,8 @@ public class Game {
 	protected Game() {
 	}
 
-	public Game(String platform, String externalId, String name) {
+	public Game(User user, String platform, String externalId, String name) {
+		this.user = user;
 		this.platform = platform;
 		this.externalId = externalId;
 		this.name = name;
@@ -51,6 +59,7 @@ public class Game {
 	}
 
 	public Long getId() { return id; }
+	public User getUser() { return user; }
 	public String getPlatform() { return platform; }
 	public String getExternalId() { return externalId; }
 	public String getName() { return name; }

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import com.gamerprofile.service.CurrentUserService;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,14 +26,17 @@ public class ProfileController {
 	private static final Set<String> AVATARS = Set.of("cyberpunk", "dragon", "wizard", "robot", "hunter", "ninja");
 	private final UserRepository userRepository;
 	private final SteamApiClient steamApiClient;
+	private final CurrentUserService currentUserService;
 
-	public ProfileController(UserRepository userRepository, SteamApiClient steamApiClient) {
+	public ProfileController(UserRepository userRepository, SteamApiClient steamApiClient, CurrentUserService currentUserService) {
 		this.userRepository = userRepository;
 		this.steamApiClient = steamApiClient;
+		this.currentUserService = currentUserService;
 	}
 
 	@GetMapping("/{userId}")
-	public ProfileDto getProfile(@PathVariable Long userId) {
+	public ProfileDto getProfile(@PathVariable Long userId, HttpServletRequest request) {
+		if (!currentUserService.requireUser(request).getId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Profile access denied");
 		User user = findUser(userId);
 		if (user.getAvatarUrl() == null && user.getUsername().startsWith("steam:")) {
 			try {
@@ -50,7 +55,8 @@ public class ProfileController {
 	}
 
 	@PatchMapping("/{userId}/avatar")
-	public ProfileDto updateAvatar(@PathVariable Long userId, @RequestBody Map<String, String> body) {
+	public ProfileDto updateAvatar(@PathVariable Long userId, @RequestBody Map<String, String> body, HttpServletRequest request) {
+		if (!currentUserService.requireUser(request).getId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Profile access denied");
 		String avatarKey = body.get("avatarKey");
 		if (!AVATARS.contains(avatarKey)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar inválido");

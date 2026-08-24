@@ -42,11 +42,15 @@ public class SteamApiClient {
 	}
 
 	public SteamAchievementsResponse getPlayerAchievements(Integer appId) {
+		return getPlayerAchievements(appId, steamId);
+	}
+
+	public SteamAchievementsResponse getPlayerAchievements(Integer appId, String playerSteamId) {
 		return restClient.get()
 				.uri(uriBuilder -> uriBuilder
 						.path("/ISteamUserStats/GetPlayerAchievements/v0001/")
 						.queryParam("key", apiKey)
-						.queryParam("steamid", steamId)
+						.queryParam("steamid", playerSteamId)
 						.queryParam("appid", appId)
 						.build())
 				.retrieve()
@@ -65,11 +69,15 @@ public class SteamApiClient {
 	}
 
 	public SteamGamesResponse getOwnedGames() {
+		return getOwnedGames(steamId);
+	}
+
+	public SteamGamesResponse getOwnedGames(String playerSteamId) {
 		Map<String, Object> payload = restClient.get()
 				.uri(uriBuilder -> uriBuilder
 						.path("/IPlayerService/GetOwnedGames/v0001/")
 						.queryParam("key", apiKey)
-						.queryParam("steamid", steamId)
+					.queryParam("steamid", playerSteamId)
 						.queryParam("include_appinfo", 1)
 						.queryParam("include_played_free_games", 1)
 						.build())

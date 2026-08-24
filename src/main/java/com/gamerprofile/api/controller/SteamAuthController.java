@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 
@@ -29,9 +30,10 @@ public class SteamAuthController {
 	}
 
 	@GetMapping("/auth/steam/callback")
-	public RedirectView callback(@RequestParam MultiValueMap<String, String> parameters) {
+	public RedirectView callback(@RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request) {
 		try {
 			Map<String, Object> result = authenticationService.authenticate(parameters);
+			request.getSession(true).setAttribute("userId", result.get("userId"));
 			return new RedirectView(frontendUrl + "?connected=steam&userId=" + result.get("userId"));
 		} catch (IllegalArgumentException exception) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());

@@ -3,8 +3,11 @@ package com.gamerprofile.integration.steam;
 import com.gamerprofile.api.dto.SteamAchievementDto;
 import com.gamerprofile.model.Achievement;
 import com.gamerprofile.model.Game;
+import com.gamerprofile.model.User;
 import com.gamerprofile.repository.AchievementRepository;
 import com.gamerprofile.repository.GameRepository;
+import com.gamerprofile.repository.PlatformConnectionRepository;
+import com.gamerprofile.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,20 +22,25 @@ public class SteamIntegrationService {
 	private final SteamApiClient steamApiClient;
 	private final GameRepository gameRepository;
 	private final AchievementRepository achievementRepository;
+	private final PlatformConnectionRepository connectionRepository;
+	private final UserRepository userRepository;
 
 	public SteamIntegrationService(SteamApiClient steamApiClient, GameRepository gameRepository,
-			AchievementRepository achievementRepository) {
+			AchievementRepository achievementRepository, PlatformConnectionRepository connectionRepository,
+			UserRepository userRepository) {
 		this.steamApiClient = steamApiClient;
 		this.gameRepository = gameRepository;
 		this.achievementRepository = achievementRepository;
+		this.connectionRepository = connectionRepository;
+		this.userRepository = userRepository;
 	}
 
-	public SteamProfileResponse getPlayerSummary() {
-		return steamApiClient.getPlayerSummary();
+	public SteamProfileResponse getPlayerSummary(Long userId) {
+		return steamApiClient.getPlayerSummary(steamId(userId));
 	}
 
-	public List<SteamGamesResponse.SteamGame> getOwnedGames() {
-		SteamGamesResponse response = steamApiClient.getOwnedGames();
+	public List<SteamGamesResponse.SteamGame> getOwnedGames(Long userId) {
+		SteamGamesResponse response = steamApiClient.getOwnedGames(steamId(userId));
 
 		if (response == null || response.response() == null || response.response().games() == null) {
 			return List.of();
@@ -41,8 +49,8 @@ public class SteamIntegrationService {
 		return response.response().games();
 	}
 
-	public List<SteamAchievementsResponse.SteamAchievement> getPlayerAchievements(Integer appId) {
-		SteamAchievementsResponse response = steamApiClient.getPlayerAchievements(appId);
+	public List<SteamAchievementsResponse.SteamAchievement> getPlayerAchievements(Long userId, Integer appId) {
+		SteamAchievementsResponse response = steamApiClient.getPlayerAchievements(appId, steamId(userId));
 
 		if (response == null || response.playerstats() == null || response.playerstats().achievements() == null) {
 			return List.of();
@@ -51,8 +59,8 @@ public class SteamIntegrationService {
 		return response.playerstats().achievements();
 	}
 
-	public List<SteamAchievementDto> getCompleteAchievements(Integer appId) {
-		SteamAchievementsResponse progressResponse = steamApiClient.getPlayerAchievements(appId);
+	public List<SteamAchievementDto> getCompleteAchievements(Long userId, Integer appId) {
+		SteamAchievementsResponse progressResponse = steamApiClient.getPlayerAchievements(appId, steamId(userId));
 		SteamAchievementSchemaResponse schemaResponse = steamApiClient.getAchievementSchema(appId);
 
 		if (progressResponse == null || progressResponse.playerstats() == null
@@ -78,12 +86,13 @@ public class SteamIntegrationService {
 	}
 
 	@Transactional
-	public int syncGames() {
-		List<SteamGamesResponse.SteamGame> steamGames = getOwnedGames();
+	public int syncGames(Long userId) {
+		User user = userRepository.findById(userId).orElseThrow();
+		List<SteamGamesResponse.SteamGame> steamGames = getOwnedGames(userId);
 		for (SteamGamesResponse.SteamGame steamGame : steamGames) {
 			String externalId = String.valueOf(steamGame.getAppid());
-			Game game = gameRepository.findByPlatformAndExternalId("STEAM", externalId)
-					.orElseGet(() -> new Game("STEAM", externalId,
+			Game game = gameRepository.findByUserIdAndPlatformAndExternalId(userId, "STEAM", externalId)
+					.orElseGet(() -> new Game(user, "STEAM", externalId,
 							steamGame.getName() == null ? externalId : steamGame.getName()));
 			String imageUrl = steamGame.getImgIconUrl() == null ? null
 					: "https://media.steampowered.com/steamcommunity/public/images/apps/"
@@ -96,11 +105,11 @@ public class SteamIntegrationService {
 	}
 
 	@Transactional
-	public int syncAchievements(Integer appId) {
-		Game game = gameRepository.findByPlatformAndExternalId("STEAM", String.valueOf(appId))
+	public int syncAchievements(Long userId, Integer appId) {
+		Game game = gameRepository.findByUserIdAndPlatformAndExternalId(userId, "STEAM", String.valueOf(appId))
 				.orElseThrow(() -> new IllegalArgumentException("Steam game is not synchronized yet: " + appId));
 
-		List<SteamAchievementDto> achievements = getCompleteAchievements(appId);
+		List<SteamAchievementDto> achievements = getCompleteAchievements(userId, appId);
 		for (SteamAchievementDto dto : achievements) {
 			Achievement achievement = achievementRepository
 					.findByGameIdAndExternalId(game.getId(), dto.apiName())
@@ -114,19 +123,19 @@ public class SteamIntegrationService {
 		return achievements.size();
 	}
 
-	public SteamBulkSyncResult syncAllAchievements() {
+	public SteamBulkSyncResult syncAllAchievements(Long userId) {
 		int gamesProcessed = 0;
 		int achievementsSynced = 0;
 		List<String> failures = new java.util.ArrayList<>();
 
-		for (Game game : gameRepository.findAll()) {
+		for (Game game : gameRepository.findAllByUserId(userId)) {
 			if (!"STEAM".equals(game.getPlatform())) {
 				continue;
 			}
 
 			try {
 				int appId = Integer.parseInt(game.getExternalId());
-				achievementsSynced += syncAchievements(appId);
+				achievementsSynced += syncAchievements(userId, appId);
 				gamesProcessed++;
 			} catch (RuntimeException exception) {
 				failures.add(game.getExternalId() + ": " + exception.getClass().getSimpleName());
@@ -134,5 +143,11 @@ public class SteamIntegrationService {
 		}
 
 		return new SteamBulkSyncResult(gamesProcessed, achievementsSynced, failures);
+	}
+
+	private String steamId(Long userId) {
+		return connectionRepository.findByUserIdAndPlatform(userId, "STEAM")
+				.orElseThrow(() -> new IllegalArgumentException("Steam account is not connected"))
+				.getExternalAccountId();
 	}
 }

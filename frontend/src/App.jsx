@@ -3,6 +3,7 @@ import './App.css'
 import './sync.css'
 
 const API = 'http://localhost:8080/api/v1'
+const apiFetch = (url, options = {}) => fetch(url, { credentials: 'include', ...options })
 
 function coverUrl(game) {
   if (game.externalId === '3405690') {
@@ -27,26 +28,27 @@ function App() {
   const [syncMessage, setSyncMessage] = useState('')
 
   useEffect(() => {
-    const userId = params.get('userId') || localStorage.getItem('gamer-profile-user-id')
-    if (params.get('userId')) localStorage.setItem('gamer-profile-user-id', params.get('userId'))
-    if (userId) fetch(`${API}/profile/${userId}`).then((response) => response.ok ? response.json() : null).then(setProfile).catch(() => {})
-  }, [])
+    if (showLogin) return
+    const userId = params.get('userId')
+    if (userId) apiFetch(`${API}/profile/${userId}`).then((response) => response.ok ? response.json() : null).then(setProfile).catch(() => {})
+  }, [showLogin])
 
   useEffect(() => {
-    fetch(`${API}/games`).then((response) => {
+    if (showLogin) return
+    apiFetch(`${API}/games`).then((response) => {
       if (!response.ok) throw new Error('Não foi possível carregar os jogos.')
       return response.json()
     }).then((data) => { setGames(data); if (data.length) selectGame(data[0]) })
       .catch((reason) => setError(reason.message)).finally(() => setLoading(false))
-  }, [])
+  }, [showLogin])
 
   useEffect(() => {
-    fetch(`${API}/dashboard/summary`).then((response) => response.json()).then(setSummary).catch(() => {})
-  }, [games])
+    if (!showLogin) apiFetch(`${API}/dashboard/summary`).then((response) => response.json()).then(setSummary).catch(() => {})
+  }, [games, showLogin])
 
   function selectGame(game) {
     setSelectedGame(game); setLoadingAchievements(true)
-    fetch(`${API}/games/${game.id}/achievements`).then((response) => response.json())
+    apiFetch(`${API}/games/${game.id}/achievements`).then((response) => response.json())
       .then(setAchievements).catch(() => setAchievements([])).finally(() => setLoadingAchievements(false))
   }
 
@@ -55,14 +57,14 @@ function App() {
     setSyncMessage('Sincronizando biblioteca Steam...')
     setError('')
     try {
-      const gamesResponse = await fetch(`${API}/integrations/steam/games/sync`, { method: 'POST' })
+      const gamesResponse = await apiFetch(`${API}/integrations/steam/games/sync`, { method: 'POST' })
       if (!gamesResponse.ok) throw new Error('Não foi possível sincronizar os jogos.')
       const gamesResult = await gamesResponse.json()
       setSyncMessage(`Importando conquistas de ${gamesResult.games} jogos...`)
-      const achievementsResponse = await fetch(`${API}/integrations/steam/games/achievements/sync-all`, { method: 'POST' })
+      const achievementsResponse = await apiFetch(`${API}/integrations/steam/games/achievements/sync-all`, { method: 'POST' })
       if (!achievementsResponse.ok) throw new Error('Jogos sincronizados, mas as conquistas falharam.')
       const achievementsResult = await achievementsResponse.json()
-      const refreshedGames = await fetch(`${API}/games`).then((response) => response.json())
+      const refreshedGames = await apiFetch(`${API}/games`).then((response) => response.json())
       setGames(refreshedGames)
       const refreshedSelected = refreshedGames.find((game) => game.id === selectedGame?.id) || refreshedGames[0]
       if (refreshedSelected) selectGame(refreshedSelected)
@@ -79,7 +81,7 @@ function App() {
   const unlocked = achievements.filter((achievement) => achievement.achieved).length
   const progress = achievements.length ? Math.round((unlocked / achievements.length) * 100) : 0
 
-  if (showLogin) return <LoginScreen onContinue={() => setShowLogin(false)} />
+  if (showLogin) return <LoginScreen />
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand">{profile?.avatarUrl ? <img className="steam-avatar" src={profile.avatarUrl} alt="Avatar da Steam" /> : <span className="brand-mark">GP</span>}<span>{profile?.displayName || 'GAMER PROFILE'}</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
@@ -94,7 +96,7 @@ function App() {
   </main>
 }
 
-function LoginScreen({ onContinue }) {
+function LoginScreen() {
   return <main className="login-shell">
     <div className="login-grid" />
     <header className="login-topbar"><div className="brand"><span className="brand-mark">GP</span><span>GAMER PROFILE</span></div><span className="login-version">PRIVATE BUILD / 001</span></header>
@@ -102,10 +104,7 @@ function LoginScreen({ onContinue }) {
       <p className="eyebrow">YOUR GAMING IDENTITY, UNIFIED</p>
       <h1>Todos os seus<br /><em>jogos. Em um só lugar.</em></h1>
       <p className="login-copy">Conecte suas plataformas, acompanhe suas conquistas e transforme cada partida em progresso.</p>
-      <div className="login-actions">
-        <a className="steam-login" href="http://localhost:8080/auth/steam"><span>◈</span> ENTRAR COM STEAM <b>↗</b></a>
-        <button className="continue-button" onClick={onContinue}>CONTINUAR SEM CONECTAR</button>
-      </div>
+      <div className="login-actions"><a className="steam-login" href="http://localhost:8080/auth/steam"><span>◈</span> ENTRAR COM STEAM <b>↗</b></a></div>
       <p className="login-note">Você será redirecionado para a Steam para autorizar o acesso. Nós nunca vemos sua senha.</p>
     </section>
     <section className="platform-preview"><span>PLATAFORMAS</span><strong>STEAM</strong><i>RETROACHIEVEMENTS</i><i>XBOX</i><i>PLAYSTATION</i></section>

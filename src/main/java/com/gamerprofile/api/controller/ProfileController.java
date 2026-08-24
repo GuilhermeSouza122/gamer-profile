@@ -77,6 +77,6 @@ public class ProfileController {
 	}
 
 	private ProfileDto toDto(User user) {
-		return new ProfileDto(user.getId(), user.getUsername(), user.getDisplayName(), user.getAvatarKey(), user.getAvatarUrl());
+		return new ProfileDto(user.getId(), user.getUsername(), user.getDisplayName(), user.getAvatarKey(), user.getAvatarUrl(), user.getXpPoints(), user.getLevel());
 	}
 }

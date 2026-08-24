@@ -7,11 +7,11 @@ import com.gamerprofile.repository.AchievementRepository;
 import com.gamerprofile.repository.GameRepository;
 import com.gamerprofile.repository.PlatformConnectionRepository;
 import com.gamerprofile.repository.UserSiteAchievementRepository;
+import com.gamerprofile.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class SiteAchievementService {
@@ -25,13 +25,16 @@ public class SiteAchievementService {
 	private final AchievementRepository achievementRepository;
 	private final PlatformConnectionRepository connectionRepository;
 	private final UserSiteAchievementRepository siteAchievementRepository;
+	private final UserRepository userRepository;
 
 	public SiteAchievementService(GameRepository gameRepository, AchievementRepository achievementRepository,
-			PlatformConnectionRepository connectionRepository, UserSiteAchievementRepository siteAchievementRepository) {
+			PlatformConnectionRepository connectionRepository, UserSiteAchievementRepository siteAchievementRepository,
+			UserRepository userRepository) {
 		this.gameRepository = gameRepository;
 		this.achievementRepository = achievementRepository;
 		this.connectionRepository = connectionRepository;
 		this.siteAchievementRepository = siteAchievementRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Transactional
@@ -48,28 +51,30 @@ public class SiteAchievementService {
 			if (!achievements.isEmpty() && achievements.stream().allMatch(achievement -> achievement.isAchieved())) completedGames++;
 		}
 		long platforms = connectionRepository.findAllByUserId(user.getId()).stream().map(connection -> connection.getPlatform()).distinct().count();
-		if (platforms >= 1) unlock(user, "FIRST_CONNECTION");
-		if (!games.isEmpty()) unlock(user, "FIRST_SYNC");
-		if (games.size() >= 10) unlock(user, "COLLECTOR");
-		if (games.size() >= 50) unlock(user, "BIG_LIBRARY");
-		if (unlockedAchievements >= 10) unlock(user, "TROPHY_HUNTER");
-		if (unlockedAchievements >= 100) unlock(user, "VETERAN_HUNTER");
-		if (completedGames >= 1) unlock(user, "COMPLETE_GAME");
-		if (platforms >= 2) unlock(user, "MULTI_PLATFORM");
-		if (platforms >= 3) unlock(user, "EXPLORER");
-		if (totalPlaytime >= 6000) unlock(user, "MARATHONER");
-		if (totalPlaytime >= 30000) unlock(user, "VETERAN");
-		if (completedGames >= 5) unlock(user, "PERFECTIONIST");
-		if (user.getAvatarUrl() != null && platforms >= 1) unlock(user, "COMPLETE_PROFILE");
+		if (platforms >= 1) unlock(user, "FIRST_CONNECTION", 50);
+		if (!games.isEmpty()) unlock(user, "FIRST_SYNC", 100);
+		if (games.size() >= 10) unlock(user, "COLLECTOR", 250);
+		if (games.size() >= 50) unlock(user, "BIG_LIBRARY", 500);
+		if (unlockedAchievements >= 10) unlock(user, "TROPHY_HUNTER", 250);
+		if (unlockedAchievements >= 100) unlock(user, "VETERAN_HUNTER", 1000);
+		if (completedGames >= 1) unlock(user, "COMPLETE_GAME", 300);
+		if (platforms >= 2) unlock(user, "MULTI_PLATFORM", 300);
+		if (platforms >= 3) unlock(user, "EXPLORER", 750);
+		if (totalPlaytime >= 6000) unlock(user, "MARATHONER", 500);
+		if (totalPlaytime >= 30000) unlock(user, "VETERAN", 1500);
+		if (completedGames >= 5) unlock(user, "PERFECTIONIST", 1000);
+		if (user.getAvatarUrl() != null && platforms >= 1) unlock(user, "COMPLETE_PROFILE", 100);
+		userRepository.save(user);
 	}
 
 	public List<String> unlockedCodes(Long userId) {
 		return siteAchievementRepository.findAllByUserId(userId).stream().map(UserSiteAchievement::getAchievementCode).toList();
 	}
 
-	private void unlock(User user, String code) {
+	private void unlock(User user, String code, int xp) {
 		if (siteAchievementRepository.findByUserIdAndAchievementCode(user.getId(), code).isEmpty()) {
 			siteAchievementRepository.save(new UserSiteAchievement(user, code));
+			user.addExperience(xp);
 		}
 	}
 }

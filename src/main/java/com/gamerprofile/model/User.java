@@ -29,6 +29,12 @@ public class User {
 	@Column(name = "avatar_url", length = 500)
 	private String avatarUrl;
 
+	@Column(name = "xp_points", nullable = false)
+	private Integer xpPoints;
+
+	@Column(nullable = false)
+	private Integer level;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -39,6 +45,8 @@ public class User {
 		this.username = username;
 		this.displayName = displayName;
 		this.avatarKey = "cyberpunk";
+		this.xpPoints = 0;
+		this.level = 1;
 		this.createdAt = Instant.now();
 	}
 
@@ -47,10 +55,17 @@ public class User {
 	public String getDisplayName() { return displayName; }
 	public String getAvatarKey() { return avatarKey; }
 	public String getAvatarUrl() { return avatarUrl; }
+	public Integer getXpPoints() { return xpPoints; }
+	public Integer getLevel() { return level; }
 	public Instant getCreatedAt() { return createdAt; }
 	public void changeAvatar(String avatarKey) { this.avatarKey = avatarKey; }
 	public void updateSteamProfile(String displayName, String avatarUrl) {
 		this.displayName = displayName;
 		this.avatarUrl = avatarUrl;
+	}
+
+	public void addExperience(int points) {
+		this.xpPoints += points;
+		this.level = 1 + (this.xpPoints / 1000);
 	}
 }

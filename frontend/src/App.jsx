@@ -65,7 +65,10 @@ function App() {
   }, [games, showLogin])
 
   useEffect(() => {
-    if (siteAchievementsOpen) apiFetch(`${API}/site-achievements`).then((response) => response.ok ? response.json() : []).then(setUnlockedSiteAchievements).catch(() => setUnlockedSiteAchievements([]))
+    if (siteAchievementsOpen) {
+      apiFetch(`${API}/site-achievements`).then((response) => response.ok ? response.json() : []).then(setUnlockedSiteAchievements).catch(() => setUnlockedSiteAchievements([]))
+      apiFetch(`${API}/profile/me`).then((response) => response.ok ? response.json() : null).then((data) => { if (data) setProfile(data) }).catch(() => {})
+    }
   }, [siteAchievementsOpen])
 
   function selectGame(game) {
@@ -106,7 +109,7 @@ function App() {
   if (showLogin) return <LoginScreen />
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand">{profile?.avatarUrl ? <img className="steam-avatar" src={profile.avatarUrl} alt="Avatar da Steam" /> : <span className="brand-mark">GP</span>}<span>{profile?.displayName || 'GAMER PROFILE'}</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="site-achievements-button" onClick={() => setSiteAchievementsOpen(!siteAchievementsOpen)}>{siteAchievementsOpen ? 'VOLTAR À BIBLIOTECA' : 'CONQUISTAS DO SITE'}</button><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
+    <header className="topbar"><div className="brand">{profile?.avatarUrl ? <img className="steam-avatar" src={profile.avatarUrl} alt="Avatar da Steam" /> : <span className="brand-mark">GP</span>}<span>{profile?.displayName || 'GAMER PROFILE'}</span></div><div className="topbar-actions">{profile && <span className="xp-badge">LVL {profile.level} · {profile.xpPoints} XP</span>}<div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="site-achievements-button" onClick={() => setSiteAchievementsOpen(!siteAchievementsOpen)}>{siteAchievementsOpen ? 'VOLTAR À BIBLIOTECA' : 'CONQUISTAS DO SITE'}</button><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
     <section className="hero"><div><p className="eyebrow">GAMER PROFILE</p><h1>Catálogo de<br /><em>troféus.</em></h1><p className="hero-copy">Sua coleção de jogos, conquistas e progresso em um só lugar.</p></div></section>
     <section className="summary-grid"><div><strong>{summary?.totalGames ?? '—'}</strong><span>JOGOS TOTAIS</span></div><div><strong>{summary ? Math.round(summary.totalPlaytimeMinutes / 60) : '—'}</strong><span>HORAS JOGADAS</span></div><div><strong>{summary?.unlockedAchievements ?? '—'}</strong><span>CONQUISTAS DESBLOQUEADAS</span></div><div><strong>{summary ? `${summary.completionPercentage}%` : '—'}</strong><span>CONCLUSÃO GERAL</span></div></section>
     {error && <div className="notice">{error} <span>Verifique se o backend está rodando em localhost:8080.</span></div>}

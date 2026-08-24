@@ -51,3 +51,11 @@ CREATE TABLE IF NOT EXISTS platform_connections (
     connected_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT uk_platform_connections_user_platform UNIQUE (user_id, platform)
 );
+
+CREATE TABLE IF NOT EXISTS user_site_achievements (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+    achievement_code VARCHAR(80) NOT NULL,
+    unlocked_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT uk_user_site_achievement UNIQUE (user_id, achievement_code)
+);

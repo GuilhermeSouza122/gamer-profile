@@ -26,6 +26,9 @@ public class User {
 	@Column(name = "avatar_key", nullable = false, length = 40)
 	private String avatarKey;
 
+	@Column(name = "avatar_url", length = 500)
+	private String avatarUrl;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -43,6 +46,11 @@ public class User {
 	public String getUsername() { return username; }
 	public String getDisplayName() { return displayName; }
 	public String getAvatarKey() { return avatarKey; }
+	public String getAvatarUrl() { return avatarUrl; }
 	public Instant getCreatedAt() { return createdAt; }
 	public void changeAvatar(String avatarKey) { this.avatarKey = avatarKey; }
+	public void updateSteamProfile(String displayName, String avatarUrl) {
+		this.displayName = displayName;
+		this.avatarUrl = avatarUrl;
+	}
 }

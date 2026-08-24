@@ -3,6 +3,8 @@ package com.gamerprofile.api.controller;
 import com.gamerprofile.api.dto.ProfileDto;
 import com.gamerprofile.model.User;
 import com.gamerprofile.repository.UserRepository;
+import com.gamerprofile.integration.steam.SteamApiClient;
+import com.gamerprofile.integration.steam.SteamProfileResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,14 +23,30 @@ public class ProfileController {
 
 	private static final Set<String> AVATARS = Set.of("cyberpunk", "dragon", "wizard", "robot", "hunter", "ninja");
 	private final UserRepository userRepository;
+	private final SteamApiClient steamApiClient;
 
-	public ProfileController(UserRepository userRepository) {
+	public ProfileController(UserRepository userRepository, SteamApiClient steamApiClient) {
 		this.userRepository = userRepository;
+		this.steamApiClient = steamApiClient;
 	}
 
 	@GetMapping("/{userId}")
 	public ProfileDto getProfile(@PathVariable Long userId) {
-		return toDto(findUser(userId));
+		User user = findUser(userId);
+		if (user.getAvatarUrl() == null && user.getUsername().startsWith("steam:")) {
+			try {
+				SteamProfileResponse summary = steamApiClient.getPlayerSummary(user.getUsername().substring(6));
+				if (summary != null && summary.response() != null && summary.response().players() != null
+						&& !summary.response().players().isEmpty()) {
+					SteamProfileResponse.SteamPlayer player = summary.response().players().getFirst();
+					user.updateSteamProfile(player.personaname(), player.avatarfull());
+					user = userRepository.save(user);
+				}
+			} catch (RuntimeException ignored) {
+				// The profile can still be displayed with its stored local data.
+			}
+		}
+		return toDto(user);
 	}
 
 	@PatchMapping("/{userId}/avatar")
@@ -48,6 +66,6 @@ public class ProfileController {
 	}
 
 	private ProfileDto toDto(User user) {
-		return new ProfileDto(user.getId(), user.getUsername(), user.getDisplayName(), user.getAvatarKey());
+		return new ProfileDto(user.getId(), user.getUsername(), user.getDisplayName(), user.getAvatarKey(), user.getAvatarUrl());
 	}
 }

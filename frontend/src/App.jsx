@@ -3,7 +3,6 @@ import './App.css'
 import './sync.css'
 
 const API = 'http://localhost:8080/api/v1'
-const AVATARS = { cyberpunk: '🦹', dragon: '🐉', wizard: '🧙', robot: '🤖', hunter: '🏹', ninja: '🥷' }
 
 function coverUrl(game) {
   if (game.externalId === '3405690') {
@@ -16,7 +15,6 @@ function App() {
   const params = new URLSearchParams(window.location.search)
   const [showLogin, setShowLogin] = useState(() => !params.has('connected'))
   const [profile, setProfile] = useState(null)
-  const [profileOpen, setProfileOpen] = useState(false)
   const [games, setGames] = useState([])
   const [selectedGame, setSelectedGame] = useState(null)
   const [achievements, setAchievements] = useState([])
@@ -33,12 +31,6 @@ function App() {
     if (params.get('userId')) localStorage.setItem('gamer-profile-user-id', params.get('userId'))
     if (userId) fetch(`${API}/profile/${userId}`).then((response) => response.ok ? response.json() : null).then(setProfile).catch(() => {})
   }, [])
-
-  async function updateAvatar(avatarKey) {
-    if (!profile) return
-    const response = await fetch(`${API}/profile/${profile.id}/avatar`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatarKey }) })
-    if (response.ok) setProfile(await response.json())
-  }
 
   useEffect(() => {
     fetch(`${API}/games`).then((response) => {
@@ -90,7 +82,7 @@ function App() {
   if (showLogin) return <LoginScreen onContinue={() => setShowLogin(false)} />
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark">GP</span><span>GAMER PROFILE</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div>{profile && <div className="profile-control"><button className="avatar-button" onClick={() => setProfileOpen(!profileOpen)}>{AVATARS[profile.avatarKey] || '🎮'}</button>{profileOpen && <div className="profile-menu"><p>{profile.displayName}</p><span>ESCOLHA SEU AVATAR</span><div className="avatar-options">{Object.entries(AVATARS).map(([key, emoji]) => <button className={profile.avatarKey === key ? 'selected' : ''} key={key} onClick={() => updateAvatar(key)}>{emoji}</button>)}</div></div>}</div>}<button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
+    <header className="topbar"><div className="brand">{profile?.avatarUrl ? <img className="steam-avatar" src={profile.avatarUrl} alt="Avatar da Steam" /> : <span className="brand-mark">GP</span>}<span>{profile?.displayName || 'GAMER PROFILE'}</span></div><div className="topbar-actions"><div className="status"><span className="pulse" /> STEAM CONNECTED</div><button className="sync-button" onClick={synchronizeSteam} disabled={syncing}>{syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR STEAM'}</button></div></header>
     <section className="hero"><div><p className="eyebrow">UNIFIED GAMING IDENTITY / 001</p><h1>Your library.<br /><em>Your progress.</em></h1><p className="hero-copy">Uma visão única de tudo que você joga, conquista e desbloqueia.</p></div><div className="hero-stat"><strong>{summary?.totalGames || games.length || '—'}</strong><span>JOGOS<br />SINCRONIZADOS</span></div></section>
     <section className="summary-grid"><div><strong>{summary?.totalGames ?? '—'}</strong><span>JOGOS TOTAIS</span></div><div><strong>{summary ? Math.round(summary.totalPlaytimeMinutes / 60) : '—'}</strong><span>HORAS JOGADAS</span></div><div><strong>{summary?.unlockedAchievements ?? '—'}</strong><span>CONQUISTAS</span></div><div><strong>{summary ? `${summary.completionPercentage}%` : '—'}</strong><span>CONCLUSÃO GERAL</span></div></section>
     {error && <div className="notice">{error} <span>Verifique se o backend está rodando em localhost:8080.</span></div>}

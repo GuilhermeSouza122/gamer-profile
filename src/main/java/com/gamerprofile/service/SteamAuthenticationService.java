@@ -4,6 +4,8 @@ import com.gamerprofile.model.PlatformConnection;
 import com.gamerprofile.model.User;
 import com.gamerprofile.repository.PlatformConnectionRepository;
 import com.gamerprofile.repository.UserRepository;
+import com.gamerprofile.integration.steam.SteamApiClient;
+import com.gamerprofile.integration.steam.SteamProfileResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class SteamAuthenticationService {
 	private final RestClient steamOpenIdClient;
 	private final UserRepository userRepository;
 	private final PlatformConnectionRepository connectionRepository;
+	private final SteamApiClient steamApiClient;
 	private final String returnUrl;
 	private final String realm;
 
@@ -31,11 +34,13 @@ public class SteamAuthenticationService {
 			RestClient steamOpenIdClient,
 			UserRepository userRepository,
 			PlatformConnectionRepository connectionRepository,
+			SteamApiClient steamApiClient,
 			@Value("${steam.auth.return-url}") String returnUrl,
 			@Value("${steam.auth.realm}") String realm) {
 		this.steamOpenIdClient = steamOpenIdClient;
 		this.userRepository = userRepository;
 		this.connectionRepository = connectionRepository;
+		this.steamApiClient = steamApiClient;
 		this.returnUrl = returnUrl;
 		this.realm = realm;
 	}
@@ -76,10 +81,22 @@ public class SteamAuthenticationService {
 		String steamId = matcher.group(1);
 		User user = userRepository.findByUsername("steam:" + steamId)
 				.orElseGet(() -> userRepository.save(new User("steam:" + steamId, "Steam User")));
-		connectionRepository.findByUserIdAndPlatform(user.getId(), "STEAM")
-				.orElseGet(() -> connectionRepository.save(new PlatformConnection(user, "STEAM", steamId)));
+		try {
+			SteamProfileResponse summary = steamApiClient.getPlayerSummary(steamId);
+			if (summary != null && summary.response() != null && summary.response().players() != null
+					&& !summary.response().players().isEmpty()) {
+				SteamProfileResponse.SteamPlayer player = summary.response().players().getFirst();
+				user.updateSteamProfile(player.personaname(), player.avatarfull());
+				user = userRepository.save(user);
+			}
+		} catch (RuntimeException ignored) {
+			// Login remains valid even if Steam's profile summary is temporarily unavailable.
+		}
+		User authenticatedUser = user;
+		connectionRepository.findByUserIdAndPlatform(authenticatedUser.getId(), "STEAM")
+				.orElseGet(() -> connectionRepository.save(new PlatformConnection(authenticatedUser, "STEAM", steamId)));
 
-		return Map.of("status", "CONNECTED", "userId", user.getId(), "platform", "STEAM", "externalAccountId", steamId);
+		return Map.of("status", "CONNECTED", "userId", authenticatedUser.getId(), "platform", "STEAM", "externalAccountId", steamId);
 	}
 
 	private String encode(String value) {

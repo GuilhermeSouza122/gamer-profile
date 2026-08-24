@@ -27,11 +27,15 @@ public class SteamApiClient {
 	}
 
 	public SteamProfileResponse getPlayerSummary() {
+		return getPlayerSummary(steamId);
+	}
+
+	public SteamProfileResponse getPlayerSummary(String playerSteamId) {
 		return restClient.get()
 				.uri(uriBuilder -> uriBuilder
 						.path("/ISteamUser/GetPlayerSummaries/v0002/")
 						.queryParam("key", apiKey)
-						.queryParam("steamids", steamId)
+					.queryParam("steamids", playerSteamId)
 						.build())
 				.retrieve()
 				.body(SteamProfileResponse.class);

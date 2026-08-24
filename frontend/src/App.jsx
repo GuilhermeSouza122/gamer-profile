@@ -4,6 +4,21 @@ import './sync.css'
 
 const API = 'http://localhost:8080/api/v1'
 const apiFetch = (url, options = {}) => fetch(url, { credentials: 'include', ...options })
+const SITE_ACHIEVEMENTS = [
+  ['Primeira conexão', 'Conecte sua primeira plataforma.', 'Conectou 1 plataforma', '✦'],
+  ['Primeira sincronização', 'Importe sua primeira biblioteca.', 'Sincronizou 1 biblioteca', '↻'],
+  ['Colecionador', 'Construa uma biblioteca com variedade.', 'Possui 10 jogos', '◈'],
+  ['Grande biblioteca', 'Sua coleção começou a crescer.', 'Possui 50 jogos', '▦'],
+  ['Caçador de troféus', 'Comece sua jornada de conquistas.', 'Desbloqueou 10 conquistas', '♢'],
+  ['Caçador veterano', 'Uma marca para quem não para.', 'Desbloqueou 100 conquistas', '♛'],
+  ['Jogo completo', 'Conclua um jogo até o último troféu.', 'Atingiu 100% em 1 jogo', '★'],
+  ['Multi-plataforma', 'Conecte mais de uma parte da sua vida gamer.', 'Conectou 2 plataformas', '⬡'],
+  ['Explorador', 'Leve sua identidade gamer para várias plataformas.', 'Conectou 3 plataformas', '⌘'],
+  ['Maratonista', 'Dedique tempo à sua coleção.', 'Acumulou 100 horas jogadas', '◷'],
+  ['Veterano', 'Uma longa história de partidas.', 'Acumulou 500 horas jogadas', '◒'],
+  ['Em busca da perfeição', 'Complete vários jogos por inteiro.', 'Completou 5 jogos em 100%', '✧'],
+  ['Perfil completo', 'Personalize sua identidade gamer.', 'Avatar e plataforma conectados', '☻']
+]
 
 function coverUrl(game) {
   if (game.externalId === '3405690') {
@@ -90,7 +105,7 @@ function App() {
     <section className="summary-grid"><div><strong>{summary?.totalGames ?? '—'}</strong><span>JOGOS TOTAIS</span></div><div><strong>{summary ? Math.round(summary.totalPlaytimeMinutes / 60) : '—'}</strong><span>HORAS JOGADAS</span></div><div><strong>{summary?.unlockedAchievements ?? '—'}</strong><span>CONQUISTAS DESBLOQUEADAS</span></div><div><strong>{summary ? `${summary.completionPercentage}%` : '—'}</strong><span>CONCLUSÃO GERAL</span></div></section>
     {error && <div className="notice">{error} <span>Verifique se o backend está rodando em localhost:8080.</span></div>}
     {syncMessage && <div className="sync-message">{syncMessage}</div>}
-    {siteAchievementsOpen ? <section className="site-achievements"><p className="eyebrow">GAMER PROFILE / ORIGINAL TROPHIES</p><h2>Conquistas do site</h2><p className="site-achievements-copy">Este espaço será usado para as conquistas próprias do Gamer Profile, independentes das conquistas importadas das plataformas.</p><div className="site-achievement-grid"><article><span>✦</span><h3>Primeiro passo</h3><p>Conquista própria do perfil.</p><small>REGRAS EM DEFINIÇÃO</small></article><article><span>◈</span><h3>Colecionador</h3><p>Conquista própria do perfil.</p><small>REGRAS EM DEFINIÇÃO</small></article><article><span>⬡</span><h3>Mestre gamer</h3><p>Conquista própria do perfil.</p><small>REGRAS EM DEFINIÇÃO</small></article></div></section> : <section className="content-grid">
+    {siteAchievementsOpen ? <section className="site-achievements"><p className="eyebrow">GAMER PROFILE / ORIGINAL TROPHIES</p><h2>Conquistas do site</h2><p className="site-achievements-copy">Conquistas próprias do Gamer Profile, independentes das conquistas importadas das plataformas.</p><div className="site-achievement-grid">{SITE_ACHIEVEMENTS.map(([name, description, criterion, icon]) => <article key={name}><span>{icon}</span><h3>{name}</h3><p>{description}</p><small>{criterion.toUpperCase()}</small></article>)}</div></section> : <section className="content-grid">
       <aside className="library-panel"><div className="panel-heading"><div><p className="eyebrow">COLLECTION</p><h2>Biblioteca</h2></div><span className="count">{games.length} JOGOS</span></div><label className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar jogo..." /></label><div className="game-list game-grid">{loading && <p className="muted">Carregando biblioteca...</p>}{!loading && filteredGames.map((game) => <button className={`game-card ${selectedGame?.id === game.id ? 'active' : ''}`} key={game.id} onClick={() => selectGame(game)}><div className={`cover-wrap ${game.externalId === '3405690' ? 'landscape-cover' : ''}`}>{game.externalId || game.imageUrl ? <img src={coverUrl(game)} onError={(event) => { if (game.imageUrl && event.currentTarget.src !== game.imageUrl) event.currentTarget.src = game.imageUrl }} alt={`Capa de ${game.name}`} /> : <span className="cover-fallback">{game.name.slice(0, 1)}</span>}<span className="card-platform">STEAM</span></div><span className="card-title">{game.name}</span><small>{Math.round((game.playtimeMinutes || 0) / 60)}h jogadas</small></button>)}</div></aside>
       <section className="detail-panel">{selectedGame ? <><div className="detail-heading"><div><p className="eyebrow">SELECTED GAME / {selectedGame.externalId}</p><h2>{selectedGame.name}</h2></div><span className="platform-badge">STEAM</span></div><div className="metrics"><div><strong>{selectedGame.playtimeMinutes || 0}</strong><span>MINUTOS JOGADOS</span></div><div><strong>{achievements.length ? `${unlocked} / ${achievements.length}` : '—'}</strong><span>CONQUISTAS</span></div><div><strong>{progress}%</strong><span>CONCLUSÃO</span></div></div><div className="achievement-header"><div><p className="eyebrow">ACHIEVEMENTS</p><h3>Conquistas</h3></div><span>{unlocked} / {achievements.length}</span></div>{loadingAchievements ? <p className="muted">Carregando conquistas...</p> : <div className="achievement-grid">{achievements.map((achievement) => <article className={`achievement ${achievement.achieved ? 'unlocked' : ''}`} key={achievement.id}><div className="achievement-icon">{achievement.iconUrl ? <img src={achievement.iconUrl} alt="" /> : '✦'}</div><div><h4>{achievement.name}</h4><p>{achievement.description || 'Conquista da sua jornada.'}</p><span>{achievement.achieved ? 'DESBLOQUEADA' : 'BLOQUEADA'}</span></div></article>)}</div>}</> : <div className="empty"><span>✦</span><h2>Biblioteca vazia</h2><p>Sincronize sua conta Steam para começar.</p></div>}</section>
     </section>}

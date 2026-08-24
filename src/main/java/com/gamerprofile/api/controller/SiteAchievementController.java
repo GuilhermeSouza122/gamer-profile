@@ -22,9 +22,9 @@ public class SiteAchievementController {
 	}
 
 	@GetMapping
-	public List<String> unlocked(HttpServletRequest request) {
+	public List<com.gamerprofile.api.dto.SiteAchievementDto> unlocked(HttpServletRequest request) {
 		var user = currentUserService.requireUser(request);
 		service.evaluate(user);
-		return service.unlockedCodes(user.getId());
+		return service.details(user.getId());
 	}
 }

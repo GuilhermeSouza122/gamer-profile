@@ -29,8 +29,8 @@ function App() {
 
   useEffect(() => {
     if (showLogin) return
-    const userId = params.get('userId')
-    if (userId) apiFetch(`${API}/profile/${userId}`).then((response) => response.ok ? response.json() : null).then(setProfile).catch(() => {})
+    apiFetch(`${API}/profile/me`).then((response) => response.ok ? response.json() : null).then(setProfile).catch(() => {})
+    if (window.location.search) window.history.replaceState({}, document.title, window.location.pathname)
   }, [showLogin])
 
   useEffect(() => {

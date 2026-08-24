@@ -54,6 +54,11 @@ public class ProfileController {
 		return toDto(user);
 	}
 
+	@GetMapping("/me")
+	public ProfileDto getCurrentProfile(HttpServletRequest request) {
+		return toDto(currentUserService.requireUser(request));
+	}
+
 	@PatchMapping("/{userId}/avatar")
 	public ProfileDto updateAvatar(@PathVariable Long userId, @RequestBody Map<String, String> body, HttpServletRequest request) {
 		if (!currentUserService.requireUser(request).getId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Profile access denied");

@@ -34,7 +34,7 @@ public class SteamAuthController {
 		try {
 			Map<String, Object> result = authenticationService.authenticate(parameters);
 			request.getSession(true).setAttribute("userId", result.get("userId"));
-			return new RedirectView(frontendUrl + "?connected=steam&userId=" + result.get("userId"));
+			return new RedirectView(frontendUrl + "?connected=steam");
 		} catch (IllegalArgumentException exception) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
 		}

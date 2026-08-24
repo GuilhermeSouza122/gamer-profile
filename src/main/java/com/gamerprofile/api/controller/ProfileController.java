@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.gamerprofile.service.CurrentUserService;
+import com.gamerprofile.service.SiteAchievementService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
@@ -27,11 +28,13 @@ public class ProfileController {
 	private final UserRepository userRepository;
 	private final SteamApiClient steamApiClient;
 	private final CurrentUserService currentUserService;
+	private final SiteAchievementService siteAchievementService;
 
-	public ProfileController(UserRepository userRepository, SteamApiClient steamApiClient, CurrentUserService currentUserService) {
+	public ProfileController(UserRepository userRepository, SteamApiClient steamApiClient, CurrentUserService currentUserService, SiteAchievementService siteAchievementService) {
 		this.userRepository = userRepository;
 		this.steamApiClient = steamApiClient;
 		this.currentUserService = currentUserService;
+		this.siteAchievementService = siteAchievementService;
 	}
 
 	@GetMapping("/{userId}")
@@ -56,7 +59,9 @@ public class ProfileController {
 
 	@GetMapping("/me")
 	public ProfileDto getCurrentProfile(HttpServletRequest request) {
-		return toDto(currentUserService.requireUser(request));
+		var user = currentUserService.requireUser(request);
+		siteAchievementService.evaluate(user);
+		return toDto(userRepository.findById(user.getId()).orElse(user));
 	}
 
 	@PatchMapping("/{userId}/avatar")

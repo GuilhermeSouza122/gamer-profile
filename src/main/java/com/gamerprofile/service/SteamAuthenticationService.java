@@ -27,6 +27,7 @@ public class SteamAuthenticationService {
 	private final UserRepository userRepository;
 	private final PlatformConnectionRepository connectionRepository;
 	private final SteamApiClient steamApiClient;
+	private final SiteAchievementService siteAchievementService;
 	private final String returnUrl;
 	private final String realm;
 
@@ -35,12 +36,14 @@ public class SteamAuthenticationService {
 			UserRepository userRepository,
 			PlatformConnectionRepository connectionRepository,
 			SteamApiClient steamApiClient,
+			SiteAchievementService siteAchievementService,
 			@Value("${steam.auth.return-url}") String returnUrl,
 			@Value("${steam.auth.realm}") String realm) {
 		this.steamOpenIdClient = steamOpenIdClient;
 		this.userRepository = userRepository;
 		this.connectionRepository = connectionRepository;
 		this.steamApiClient = steamApiClient;
+		this.siteAchievementService = siteAchievementService;
 		this.returnUrl = returnUrl;
 		this.realm = realm;
 	}
@@ -95,6 +98,7 @@ public class SteamAuthenticationService {
 		User authenticatedUser = user;
 		connectionRepository.findByUserIdAndPlatform(authenticatedUser.getId(), "STEAM")
 				.orElseGet(() -> connectionRepository.save(new PlatformConnection(authenticatedUser, "STEAM", steamId)));
+		siteAchievementService.evaluate(authenticatedUser);
 
 		return Map.of("status", "CONNECTED", "userId", authenticatedUser.getId(), "platform", "STEAM", "externalAccountId", steamId);
 	}

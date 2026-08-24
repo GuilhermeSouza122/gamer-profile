@@ -8,6 +8,7 @@ import com.gamerprofile.repository.AchievementRepository;
 import com.gamerprofile.repository.GameRepository;
 import com.gamerprofile.repository.PlatformConnectionRepository;
 import com.gamerprofile.repository.UserRepository;
+import com.gamerprofile.service.SiteAchievementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +25,17 @@ public class SteamIntegrationService {
 	private final AchievementRepository achievementRepository;
 	private final PlatformConnectionRepository connectionRepository;
 	private final UserRepository userRepository;
+	private final SiteAchievementService siteAchievementService;
 
 	public SteamIntegrationService(SteamApiClient steamApiClient, GameRepository gameRepository,
 			AchievementRepository achievementRepository, PlatformConnectionRepository connectionRepository,
-			UserRepository userRepository) {
+			UserRepository userRepository, SiteAchievementService siteAchievementService) {
 		this.steamApiClient = steamApiClient;
 		this.gameRepository = gameRepository;
 		this.achievementRepository = achievementRepository;
 		this.connectionRepository = connectionRepository;
 		this.userRepository = userRepository;
+		this.siteAchievementService = siteAchievementService;
 	}
 
 	public SteamProfileResponse getPlayerSummary(Long userId) {
@@ -101,6 +104,7 @@ public class SteamIntegrationService {
 					steamGame.getPlaytimeForever(), steamGame.getRtimeLastPlayed(), imageUrl);
 			gameRepository.save(game);
 		}
+		siteAchievementService.evaluate(user);
 		return steamGames.size();
 	}
 
@@ -141,6 +145,7 @@ public class SteamIntegrationService {
 				failures.add(game.getExternalId() + ": " + exception.getClass().getSimpleName());
 			}
 		}
+		userRepository.findById(userId).ifPresent(siteAchievementService::evaluate);
 
 		return new SteamBulkSyncResult(gamesProcessed, achievementsSynced, failures);
 	}
